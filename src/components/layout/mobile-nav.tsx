@@ -1,77 +1,107 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import type { Category } from "@/lib/supabase/types";
+import { categoryColor } from "@/lib/category-colors";
+import { SOCIAL_LINKS } from "@/lib/constants";
 
+const emptySubscribe = () => () => {};
+
+/**
+ * Menu plein écran : s'ouvre en cercle depuis le bouton, liens en cascade.
+ * Placé sous l'en-tête (z-35 < z-40) pour que les capsules — et le bouton de
+ * fermeture — restent par-dessus.
+ */
 export function MobileNav({ categories }: { categories: Category[] }) {
   const [open, setOpen] = useState(false);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const items = [{ name: "Accueil", href: "/", color: "var(--foreground)" }, ...categories.map((c) => ({ name: c.name, href: `/categorie/${c.slug}`, color: categoryColor(c.name) }))];
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
         aria-expanded={open}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-card-border text-foreground transition-colors hover:bg-muted"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full bg-foreground text-background transition-transform active:scale-90"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path
-            d="M4 7h16"
-            className={`origin-center transition-transform duration-300 ease-out ${open ? "translate-y-[6px] rotate-45" : ""}`}
-          />
-          <path
-            d="M4 12h16"
-            className={`transition-opacity duration-200 ${open ? "opacity-0" : "opacity-100"}`}
-          />
-          <path
-            d="M4 17h16"
-            className={`origin-center transition-transform duration-300 ease-out ${open ? "-translate-y-[6px] -rotate-45" : ""}`}
-          />
-        </svg>
+        <span className={`absolute h-[2px] w-4 rounded-full bg-current transition-transform duration-500 [transition-timing-function:var(--ease-spring)] ${open ? "rotate-45" : "-translate-y-[4px]"}`} />
+        <span className={`absolute h-[2px] w-4 rounded-full bg-current transition-transform duration-500 [transition-timing-function:var(--ease-spring)] ${open ? "-rotate-45" : "translate-y-[4px]"}`} />
       </button>
 
-      <div
-        className={`absolute inset-x-0 top-full z-40 overflow-hidden border-card-border bg-background shadow-lg transition-[max-height,opacity] duration-300 ease-out ${
-          open ? "max-h-[70vh] border-b opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <nav className="am-stagger flex flex-col gap-1 px-4 py-4">
-          <Link
-            href="/"
-            onClick={() => setOpen(false)}
-            className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-primary"
+      {mounted &&
+        createPortal(
+          <div
+            data-open={open}
+            aria-hidden={!open}
+            inert={!open}
+            className="group/menu fixed inset-0 z-[35] flex flex-col overflow-y-auto bg-background px-6 pb-10 pt-28 transition-[clip-path] duration-700 [clip-path:circle(0%_at_calc(100%-3rem)_2.75rem)] [transition-timing-function:var(--ease-inout)] data-[open=true]:[clip-path:circle(150%_at_calc(100%-3rem)_2.75rem)]"
           >
-            Accueil
-          </Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/categorie/${cat.slug}`}
-              onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-primary"
-            >
-              {cat.name}
-            </Link>
-          ))}
+            <div className="aurora" aria-hidden>
+              <span />
+              <span />
+              <span />
+            </div>
+            <nav className="flex flex-col">
+              {items.map((item, i) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  style={{ "--d": `${120 + i * 50}ms` } as CSSProperties}
+                  className="group flex items-center gap-4 border-b border-card-border py-4 opacity-0 translate-y-6 transition-[opacity,transform] duration-700 [transition-delay:0ms] [transition-timing-function:var(--ease-out)] group-data-[open=true]/menu:translate-y-0 group-data-[open=true]/menu:opacity-100 group-data-[open=true]/menu:[transition-delay:var(--d)]"
+                >
+                  <span className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="font-display flex-1 text-4xl font-bold text-foreground transition-transform duration-500 group-hover:translate-x-2 sm:text-5xl">
+                    {item.name}
+                  </span>
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                </Link>
+              ))}
+            </nav>
 
-          <hr className="my-2 border-card-border" />
-
-          <Link
-            href="/admin/login"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-primary"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <path d="M10 17l5-5-5-5" />
-              <path d="M15 12H3" />
-            </svg>
-            Connexion
-          </Link>
-        </nav>
-      </div>
+            <div className="mt-10 flex flex-wrap items-center gap-3 opacity-0 transition-opacity delay-500 duration-700 group-data-[open=true]/menu:opacity-100">
+              <Link
+                href="/recherche"
+                onClick={() => setOpen(false)}
+                className="glass rounded-full px-5 py-3 text-sm font-medium text-foreground"
+              >
+                Rechercher
+              </Link>
+              <Link
+                href="/admin/login"
+                onClick={() => setOpen(false)}
+                className="glass rounded-full px-5 py-3 text-sm font-medium text-foreground"
+              >
+                Connexion
+              </Link>
+              <a
+                href={SOCIAL_LINKS.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-flame rounded-full px-5 py-3 text-sm font-semibold text-[#07070B]"
+              >
+                WhatsApp
+              </a>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
