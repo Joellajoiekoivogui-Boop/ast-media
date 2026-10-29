@@ -9,8 +9,9 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-4 text-center">
-      <h1 className="mb-2 text-xl font-bold">Une erreur est survenue</h1>
-      <p className="text-sm text-gray-500">Veuillez réessayer ou consulter les journaux du serveur.</p>
+      <p className="font-display text-gradient mb-4 text-8xl font-extrabold leading-none">Oups</p>
+      <h1 className="font-display mb-2 text-3xl font-bold">Une erreur est survenue</h1>
+      <p className="text-muted-foreground">Veuillez réessayer ou consulter les journaux du serveur.</p>
     </div>
   );
 }

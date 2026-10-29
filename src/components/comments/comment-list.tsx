@@ -20,12 +20,19 @@ export function CommentList({
   }
 
   return (
-    <section id="commentaires" className="space-y-6">
-      <h2 className="text-xl font-extrabold text-foreground">
-        Commentaires ({comments.length})
-      </h2>
+    <section id="commentaires" className="scroll-mt-28 space-y-6">
+      <div className="flex items-end justify-between gap-4">
+        <h2 className="font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">
+          Le <span className="font-accent text-gradient pr-1">débat</span>
+        </h2>
+        <span className="glass rounded-full px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-foreground-secondary">
+          {comments.length} commentaire{comments.length > 1 ? "s" : ""}
+        </span>
+      </div>
 
-      <CommentForm articleId={articleId} articleSlug={articleSlug} />
+      <div className="border-spin rounded-[2rem] bg-card p-5 sm:p-6">
+        <CommentForm articleId={articleId} articleSlug={articleSlug} />
+      </div>
 
       <div className="space-y-5">
         {topLevel.map((comment) => (
@@ -38,7 +45,7 @@ export function CommentList({
           />
         ))}
         {topLevel.length === 0 && (
-          <p className="text-sm text-muted-foreground">
+          <p className="py-6 text-center text-muted-foreground">
             Soyez le premier à commenter cet article.
           </p>
         )}

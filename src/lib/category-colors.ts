@@ -1,15 +1,16 @@
+// Teintes vives, lisibles sur fond sombre comme sur fond clair.
 export const CATEGORY_COLORS: Record<string, string> = {
-  "Société": "#CE1126",
-  "Politique": "#1F4E79",
-  "Sport": "#009460",
-  "Culture": "#8E44AD",
-  "Économie": "#B7791F",
-  "Technologie": "#0E7490",
-  "Éducation": "#C2410C",
-  "Santé": "#0F766E",
-  "International": "#374151",
+  "Société": "#FF5533",
+  "Politique": "#4D7CFF",
+  "Sport": "#16C79A",
+  "Culture": "#B468FF",
+  "Économie": "#F5A100",
+  "Technologie": "#16B8E0",
+  "Éducation": "#FF7A3D",
+  "Santé": "#1FC7B6",
+  "International": "#9A9AAE",
 };
 
 export function categoryColor(name: string): string {
-  return CATEGORY_COLORS[name] ?? "#CE1126";
+  return CATEGORY_COLORS[name] ?? "#FF5533";
 }
